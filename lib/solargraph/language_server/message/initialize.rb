@@ -37,8 +37,7 @@ module Solargraph
           result[:capabilities].merge! static_workspace_symbols unless dynamic_registration_for?('workspace', 'symbol')
           result[:capabilities].merge! static_folding_range unless dynamic_registration_for?('textDocument', 'foldingRange')
           result[:capabilities].merge! static_highlights unless dynamic_registration_for?('textDocument', 'documentHighlight')
-          # @todo Temporarily disabled
-          # result[:capabilities].merge! static_code_action unless dynamic_registration_for?('textDocument', 'codeAction')
+          result[:capabilities].merge! static_code_action unless dynamic_registration_for?('textDocument', 'codeAction')
           set_result result
         end
 
@@ -64,7 +63,7 @@ module Solargraph
         def static_code_action
           {
             codeActionProvider: true,
-            codeActionKinds: ["quickfix"]
+            codeActionKinds: ["quickfix", "refactor"]
           }
         end
 
