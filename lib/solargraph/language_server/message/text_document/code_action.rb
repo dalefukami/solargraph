@@ -29,7 +29,7 @@ module Solargraph
             content = line[(params['range']['start']['character']+start_chars_removed)...(params['range']['end']['character']-end_chars_removed)]
 
             # XXX: Clone range instead?
-            selectionRange = params['range'] # XXX: trim the spaces around the selection?
+            selectionRange = params['range']
             selectionRange['start']['character'] += start_chars_removed
             selectionRange['end']['character'] -= end_chars_removed
             selectionLine = params['range']['start']['line']
