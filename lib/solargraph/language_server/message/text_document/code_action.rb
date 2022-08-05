@@ -8,6 +8,12 @@ module Solargraph
       module TextDocument
         class CodeAction < Base
           def process
+            results = []
+            results.concat(variable_extraction)
+            set_result(results)
+          end
+
+          def variable_extraction()
             # XXX: not everything can have this code action....what is our determination?
             # XXX: single line...more than one character?....full "words", eg: " 1 " and "thing.stuff"?
 
@@ -16,7 +22,7 @@ module Solargraph
             line = original.split("\n")[params['range']['start']['line']]
             content = line[params['range']['start']['character']...params['range']['end']['character']]
 
-            return set_result([]) unless is_whole_word?(line, params['range']['start']['character'], params['range']['end']['character'])
+            return [] unless is_whole_word?(line, params['range']['start']['character'], params['range']['end']['character'])
 
             # Ensure we only capture "whole words" and not leading trailing whitespace
             trimmed_content = content.strip
@@ -42,29 +48,27 @@ module Solargraph
             indentation = line.match(/^([ ]*)/)[1].length
             variable_definition = (" " * indentation) + "newvar = #{trimmed_content}\n"
 
-            set_result(
-              [
-                {
-                  title: "Extract Variable",
-                  kind: "refactor.extract.variable",
-                  # command: "extractVariable" # This requires the vscode extension to know this command exists
-                  edit: {
-                    changes: {
-                      "#{fileUri}": [
-                        {
-                          range: newVarRange,
-                          newText: variable_definition
-                        },
-                        {
-                          range: selectionRange,
-                          newText: "newvar"
-                        }
-                      ]
-                    }
+            [
+              {
+                title: "Extract Variable",
+                kind: "refactor.extract.variable",
+                # command: "extractVariable" # This requires the vscode extension to know this command exists
+                edit: {
+                  changes: {
+                    "#{fileUri}": [
+                      {
+                        range: newVarRange,
+                        newText: variable_definition
+                      },
+                      {
+                        range: selectionRange,
+                        newText: "newvar"
+                      }
+                    ]
                   }
                 }
-              ]
-            )
+              }
+            ]
           end
 
           def is_whole_word?(line, start_char, end_char)

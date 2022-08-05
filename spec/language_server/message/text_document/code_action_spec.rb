@@ -1,5 +1,5 @@
 describe Solargraph::LanguageServer::Message::TextDocument::CodeAction do
-  context 'when things' do
+  context 'when checking for variable extraction' do
     it 'extracts variable' do
       host = double(:Host, read_text: <<-CODE
 First line
