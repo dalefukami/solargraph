@@ -14,7 +14,7 @@ CODE
     }
     message = Solargraph::LanguageServer::Message::TextDocument::CodeAction.new(host, request)
     result = message.process
-    expect(result.first[:kind]).to eq("refactor") # XXX: refactor.extract?
+    expect(result.first[:kind]).to eq("refactor.extract.variable")
     expect(result.first[:title]).to eq("Extract Variable")
     file_changes = result.first[:edit][:changes]["test.rb".to_sym]
     file_changes = file_changes.map{|f| f.transform_keys(&:to_sym)}

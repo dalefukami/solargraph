@@ -46,8 +46,8 @@ module Solargraph
               [
                 {
                   title: "Extract Variable",
-                  kind: "refactor",
-                  # command: "extractVariable" # This requires the extension to register the command?
+                  kind: "refactor.extract.variable",
+                  # command: "extractVariable" # This requires the vscode extension to know this command exists
                   edit: {
                     changes: {
                       "#{fileUri}": [
