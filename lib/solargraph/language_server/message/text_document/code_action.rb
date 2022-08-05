@@ -33,11 +33,15 @@ module Solargraph
             selectionRange['start']['character'] += start_chars_removed
             selectionRange['end']['character'] -= end_chars_removed
             selectionLine = params['range']['start']['line']
-            # XXX: match indentation
+
             newVarRange = {
               start: { line: selectionLine, character: 0 },
               end: { line: selectionLine, character: 0 }
             }
+
+            indentation = line.match(/^([ ]*)/)[1].length
+            variable_definition = (" " * indentation) + "newvar = #{trimmed_content}\n"
+
             set_result(
               [
                 {
@@ -49,7 +53,7 @@ module Solargraph
                       "#{fileUri}": [
                         {
                           range: newVarRange,
-                          newText: "newvar = #{trimmed_content}\n"
+                          newText: variable_definition
                         },
                         {
                           range: selectionRange,

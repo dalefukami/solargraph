@@ -118,4 +118,24 @@ CODE
 
     expect(result.length).to eq(1)
   end
+
+  it 'matches indentation of selected line' do
+    host = double(:Host, read_text: <<-CODE
+  if 'some string' && 'other string'
+CODE
+    )
+    request = {
+      'params' => {
+        'textDocument' => { 'uri' => 'test.rb' },
+        'range'=> { "start"=>{"line"=>0, "character"=>5}, "end"=>{"line"=>0, "character"=>18}}
+      }
+    }
+    message = Solargraph::LanguageServer::Message::TextDocument::CodeAction.new(host, request)
+
+    result = message.process
+
+    file_changes = result.first[:edit][:changes]["test.rb".to_sym]
+    file_changes = file_changes.map{|f| f.transform_keys(&:to_sym)}
+    expect(file_changes.first[:newText]).to eq("  newvar = 'some string'\n")
+  end
 end
