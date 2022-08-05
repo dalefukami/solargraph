@@ -140,4 +140,37 @@ CODE
       expect(file_changes.first[:newText]).to eq("  newvar = 'some string'\n")
     end
   end
+
+  context 'when checking for variable inlining' do
+    it 'inlines variable' do
+      host = Solargraph::LanguageServer::Host.new
+      host.start
+      host.open('file:///file.rb', %(
+        def method()
+          var_one = 'things'
+          puts var_one
+        end
+      ), 1)
+      request = {
+        'params' => {
+          'textDocument' => { 'uri' => 'file:///file.rb' },
+          'range'=> { "start"=>{"line"=>2, "character"=>10}, "end"=>{"line"=>2, "character"=>11}}
+        }
+      }
+      message = Solargraph::LanguageServer::Message::TextDocument::CodeAction.new(host, request)
+      result = message.process
+      inline = result.find {|r| r[:kind] == "refactor.inline.variable"}
+
+      expect(inline[:kind]).to eq("refactor.inline.variable")
+      expect(inline[:title]).to eq("Inline Variable")
+      file_changes = inline[:edit][:changes]["file:///file.rb".to_sym]
+      file_changes = file_changes.map{|f| f.transform_keys(&:to_sym)}
+
+      expect(file_changes.first[:range][:start][:line]).to eq(3)
+      expect(file_changes.first[:range][:start][:character]).to eq(15)
+      expect(file_changes.first[:range][:end][:line]).to eq(3)
+      expect(file_changes.first[:range][:end][:character]).to eq(22)
+      expect(file_changes.first[:newText]).to eq("'things'")
+    end
+  end
 end

@@ -10,7 +10,39 @@ module Solargraph
           def process
             results = []
             results.concat(variable_extraction)
+            results.concat(variable_inlining)
             set_result(results)
+          end
+
+          def variable_inlining()
+            range = params['range']
+
+            # XXX: how to decide we can inline?
+            return [] if range['end']['character'] != 11
+
+            fileUri = params['textDocument']['uri']
+            locs = host.references_from(params['textDocument']['uri'], range['start']['line'], range['start']['character'], strip: true)
+            # XXX: this assumes we did inline from the variable definition...but that might not be true
+            original_location = locs.find { |l| l.range.start.line == range['start']['line'] }
+            results = []
+            (locs - [original_location]).each do |location|
+              results.push({
+                title: "Inline Variable",
+                kind: "refactor.inline.variable",
+                edit: {
+                  changes: {
+                    "#{fileUri}": [
+                      {
+                        range: location.range.to_hash,
+                        newText: "'things'" # XXX: Find which one is the definition
+                      },
+                    ]
+                  }
+                }
+              })
+            end
+
+            results
           end
 
           def variable_extraction()
