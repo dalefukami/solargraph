@@ -172,5 +172,33 @@ CODE
       expect(file_changes.first[:range][:end][:character]).to eq(22)
       expect(file_changes.first[:newText]).to eq("'some value'")
     end
+
+    it 'inlines value from variable definition when cursor is on usage line' do
+      host = Solargraph::LanguageServer::Host.new
+      host.start
+      host.open('file:///file.rb', %(
+        def method()
+          var_one = 'some value'
+          puts var_one
+        end
+      ), 1)
+      request = {
+        'params' => {
+          'textDocument' => { 'uri' => 'file:///file.rb' },
+          'range'=> { "start"=>{"line"=>3, "character"=>19}, "end"=>{"line"=>3, "character"=>19}}
+        }
+      }
+      message = Solargraph::LanguageServer::Message::TextDocument::CodeAction.new(host, request)
+      result = message.process
+      inline = result.find {|r| r[:kind] == "refactor.inline.variable"}
+
+      file_changes = inline[:edit][:changes]["file:///file.rb".to_sym]
+      file_changes = file_changes.map{|f| f.transform_keys(&:to_sym)}
+      expect(file_changes.first[:range][:start][:line]).to eq(3)
+      expect(file_changes.first[:range][:start][:character]).to eq(15)
+      expect(file_changes.first[:range][:end][:line]).to eq(3)
+      expect(file_changes.first[:range][:end][:character]).to eq(22)
+      expect(file_changes.first[:newText]).to eq("'some value'")
+    end
   end
 end

@@ -30,11 +30,13 @@ module Solargraph
             value = match[1]
 
             # XXX: this assumes we did inline from the variable definition...but that might not be true
-            original_location = locs.find { |l| l.range.start.line == range['start']['line'] }
+            original_location = locs.find { |l| l.range.start.line == definition.location.range.start.line }
             results = []
             # XXX: locs seems to get usages outside the context of the variable?
             (locs - [original_location]).each do |location|
               # XXX: Probably don't want a full separate refactoring per location. :)
+              # XXX: Remove the definition line
+              # XXX: Maybe two options? InlineAll vs InlineOne?
               results.push({
                 title: "Inline Variable",
                 kind: "refactor.inline.variable",
