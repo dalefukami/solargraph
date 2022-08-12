@@ -31,29 +31,33 @@ module Solargraph
 
             # XXX: this assumes we did inline from the variable definition...but that might not be true
             original_location = locs.find { |l| l.range.start.line == definition.location.range.start.line }
-            results = []
+            changes = []
             # XXX: locs seems to get usages outside the context of the variable?
             (locs - [original_location]).each do |location|
               # XXX: Probably don't want a full separate refactoring per location. :)
               # XXX: Remove the definition line
               # XXX: Maybe two options? InlineAll vs InlineOne?
-              results.push({
+              changes.push( { range: location.range.to_hash, newText: value })
+            end
+            changes.push({
+              range: {
+                start: { line: definition.location.range.start.line, character: 0 },
+                end: { line: definition.location.range.start.line + 1, character: 0 },
+              },
+              newText: ''
+            })
+
+            [
+              {
                 title: "Inline Variable",
                 kind: "refactor.inline.variable",
                 edit: {
                   changes: {
-                    "#{fileUri}": [
-                      {
-                        range: location.range.to_hash,
-                        newText: value
-                      },
-                    ]
+                    "#{fileUri}": changes
                   }
                 }
-              })
-            end
-
-            results
+              }
+            ]
           end
 
           def variable_extraction()

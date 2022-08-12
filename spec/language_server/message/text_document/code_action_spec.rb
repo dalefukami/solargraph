@@ -171,6 +171,12 @@ CODE
       expect(file_changes.first[:range][:end][:line]).to eq(3)
       expect(file_changes.first[:range][:end][:character]).to eq(22)
       expect(file_changes.first[:newText]).to eq("'some value'")
+
+      expect(file_changes[1][:range][:start][:line]).to eq(2)
+      expect(file_changes[1][:range][:start][:character]).to eq(0)
+      expect(file_changes[1][:range][:end][:line]).to eq(3)
+      expect(file_changes[1][:range][:end][:character]).to eq(0)
+      expect(file_changes[1][:newText]).to eq("")
     end
 
     it 'inlines value from variable definition when cursor is on usage line' do
