@@ -17,15 +17,24 @@ module Solargraph
           def variable_inlining()
             range = params['range']
 
-            # XXX: how to decide we can inline?
-            return [] if range['end']['character'] != 11
+            defs = host.definitions_at(params['textDocument']['uri'], range['start']['line'], range['start']['character'])
+            return [] if defs.nil? || defs.length < 1
 
             fileUri = params['textDocument']['uri']
-            locs = host.references_from(params['textDocument']['uri'], range['start']['line'], range['start']['character'], strip: true)
+            locs = host.references_from(params['textDocument']['uri'], range['start']['line'], range['start']['character'], strip: true, only: true)
+            definition = defs[0]
+            original = host.read_text(fileUri)
+            var_code = original.split("\n")[definition.location.range.start.line][definition.location.range.start.character...definition.location.range.ending.character]
+            match = var_code.match(/#{definition.name} = (.*)$/)
+            return [] if match.nil? || match[1].nil?
+            value = match[1]
+
             # XXX: this assumes we did inline from the variable definition...but that might not be true
             original_location = locs.find { |l| l.range.start.line == range['start']['line'] }
             results = []
+            # XXX: locs seems to get usages outside the context of the variable?
             (locs - [original_location]).each do |location|
+              # XXX: Probably don't want a full separate refactoring per location. :)
               results.push({
                 title: "Inline Variable",
                 kind: "refactor.inline.variable",
@@ -34,7 +43,7 @@ module Solargraph
                     "#{fileUri}": [
                       {
                         range: location.range.to_hash,
-                        newText: "'things'" # XXX: Find which one is the definition
+                        newText: value
                       },
                     ]
                   }

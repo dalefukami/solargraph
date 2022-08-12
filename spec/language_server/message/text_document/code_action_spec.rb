@@ -1,7 +1,7 @@
 describe Solargraph::LanguageServer::Message::TextDocument::CodeAction do
   context 'when checking for variable extraction' do
     it 'extracts variable' do
-      host = double(:Host, read_text: <<-CODE
+      host = double(:Host, definitions_at: [], read_text: <<-CODE
 First line
 some code 'here' 
 Last Line
@@ -31,7 +31,7 @@ CODE
     end
 
     it 'encompasses whole selection' do
-      host = double(:Host, read_text: <<-CODE
+      host = double(:Host, definitions_at: [], read_text: <<-CODE
 if 'some string' && 'other string'
 CODE
       )
@@ -58,7 +58,7 @@ CODE
     end
 
     it 'trims selection' do
-      host = double(:Host, read_text: <<-CODE
+      host = double(:Host, definitions_at: [], read_text: <<-CODE
 if 'some string' && 'other string'
 CODE
       )
@@ -85,7 +85,7 @@ CODE
     end
 
     it 'does not return action if whole word not selected' do
-      host = double(:Host, read_text: <<-CODE
+      host = double(:Host, definitions_at: [], read_text: <<-CODE
 if 'some string' && 'other string'
 CODE
       )
@@ -103,7 +103,7 @@ CODE
     end
 
     it 'considers non-variable things as word surrounders' do
-      host = double(:Host, read_text: <<-CODE
+      host = double(:Host, definitions_at: [], read_text: <<-CODE
 if ('some string') && 'other string'
 CODE
       )
@@ -121,7 +121,7 @@ CODE
     end
 
     it 'matches indentation of selected line' do
-      host = double(:Host, read_text: <<-CODE
+      host = double(:Host, definitions_at: [], read_text: <<-CODE
   if 'some string' && 'other string'
 CODE
       )
@@ -147,7 +147,7 @@ CODE
       host.start
       host.open('file:///file.rb', %(
         def method()
-          var_one = 'things'
+          var_one = 'some value'
           puts var_one
         end
       ), 1)
@@ -170,7 +170,7 @@ CODE
       expect(file_changes.first[:range][:start][:character]).to eq(15)
       expect(file_changes.first[:range][:end][:line]).to eq(3)
       expect(file_changes.first[:range][:end][:character]).to eq(22)
-      expect(file_changes.first[:newText]).to eq("'things'")
+      expect(file_changes.first[:newText]).to eq("'some value'")
     end
   end
 end
