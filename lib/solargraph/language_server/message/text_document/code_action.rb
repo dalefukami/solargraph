@@ -29,14 +29,12 @@ module Solargraph
             return [] if match.nil? || match[1].nil?
             value = match[1]
 
-            # XXX: this assumes we did inline from the variable definition...but that might not be true
             original_location = locs.find { |l| l.range.start.line == definition.location.range.start.line }
             changes = []
-            # XXX: locs seems to get usages outside the context of the variable?
-            (locs - [original_location]).each do |location|
-              # XXX: Probably don't want a full separate refactoring per location. :)
-              # XXX: Remove the definition line
-              # XXX: Maybe two options? InlineAll vs InlineOne?
+            # There's still a little trickiness as far as nested blocks shadowing variables
+            (locs - [original_location])
+              .filter { |location| definition.presence.contain?(location.range.start)}
+              .each do |location|
               changes.push( { range: location.range.to_hash, newText: value })
             end
             changes.push({
@@ -61,9 +59,6 @@ module Solargraph
           end
 
           def variable_extraction()
-            # XXX: not everything can have this code action....what is our determination?
-            # XXX: single line...more than one character?....full "words", eg: " 1 " and "thing.stuff"?
-
             fileUri = params['textDocument']['uri']
             original = host.read_text(fileUri)
             line = original.split("\n")[params['range']['start']['line']]
@@ -81,7 +76,7 @@ module Solargraph
 
             content = line[(params['range']['start']['character']+start_chars_removed)...(params['range']['end']['character']-end_chars_removed)]
 
-            # XXX: Clone range instead?
+            # Clone the range instead?
             selectionRange = params['range']
             selectionRange['start']['character'] += start_chars_removed
             selectionRange['end']['character'] -= end_chars_removed
