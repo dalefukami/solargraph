@@ -20,6 +20,9 @@ module Solargraph
             defs = host.definitions_at(params['textDocument']['uri'], range['start']['line'], range['start']['character'])
             return [] if defs.nil? || defs.length < 1
 
+            definition = defs[0]
+            return [] if !definition.variable?
+
             fileUri = params['textDocument']['uri']
             locs = host.references_from(params['textDocument']['uri'], range['start']['line'], range['start']['character'], strip: true, only: true)
             definition = defs[0]
