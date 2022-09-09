@@ -21,7 +21,8 @@ module Solargraph
             return [] if defs.nil? || defs.length < 1
 
             definition = defs[0]
-            return [] if !definition.variable?
+            # Only support local variables
+            return [] if !definition.variable? || definition.class != ::Solargraph::Pin::LocalVariable
 
             fileUri = params['textDocument']['uri']
             locs = host.references_from(params['textDocument']['uri'], range['start']['line'], range['start']['character'], strip: true, only: true)
